@@ -530,8 +530,27 @@
 
     <script>
         lucide.createIcons();
-        const apiKey = ""; 
-        const modelName = "gemini-2.5-flash-preview-09-2025";
+let apiKey = ""; 
+const modelName = "gemini-2.5-flash-preview-09-2025";
+
+async function runAnalysis() {
+    // [새로 추가할 부분 시작]
+    if (!apiKey) {
+        apiKey = prompt("AI 분석을 위해 Google Gemini API 키를 입력해주세요.\n(입력하신 키는 저장되지 않으며 현재 화면에서만 안전하게 사용됩니다.)");
+        if (!apiKey) {
+            alert("API 키가 입력되지 않아 분석을 취소합니다.");
+            return;
+        }
+    }
+    // [새로 추가할 부분 끝]
+
+    const area = document.getElementById('aiResponseArea');
+    const loading = document.getElementById('aiLoading');
+    const content = document.getElementById('aiResponseContent');
+    const runBtn = document.getElementById('runBtn');
+    const timestamp = document.getElementById('reportTimestamp');
+
+    // ... 이하 기존 코드와 동일 ...
 
         // 공통 알림(Toast) 함수
         function showToast(msg) {
