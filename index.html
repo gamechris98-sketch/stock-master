@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>주식 분석 마스터 실습 웹앱 v3.0</title>
+    <title>주식 분석 마스터 실습 웹앱 v3.0 Ultimate</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -144,7 +144,7 @@
 
     <main class="flex-grow pt-28 pb-36 px-4 max-w-6xl mx-auto w-full">
         
-        <!-- Tab 1: 기초 개념 마스터 (상세 설명 5줄 복구) -->
+        <!-- Tab 1: 기초 개념 마스터 -->
         <section id="concept" class="tab-content active space-y-10">
             <div class="glass p-8 md:p-12">
                 <div class="text-center mb-12">
@@ -251,10 +251,8 @@
                                 <div class="chart-viz bg-blue-500/10">
                                     <svg class="chart-line" viewBox="0 0 200 100" preserveAspectRatio="none">
                                         <path d="M20,20 L60,50 L100,75 L140,80" stroke="#fff" stroke-width="2" opacity="0.2" fill="none" />
-                                        <!-- Hammer Candle -->
                                         <line x1="140" y1="80" x2="140" y2="95" stroke="#4285F4" stroke-width="2" />
                                         <rect x="132" y="78" width="16" height="10" fill="#4285F4" rx="2" />
-                                        <!-- After Hammer -->
                                         <path d="M140,80 L180,40" stroke="#34A853" stroke-width="3" stroke-dasharray="4" />
                                     </svg>
                                     <div class="chart-label bg-blue-600 text-white" style="bottom: 15%; left: 55%;">하락 멈춤 및 반등</div>
@@ -271,10 +269,8 @@
                                 <div class="chart-viz bg-red-500/10">
                                     <svg class="chart-line" viewBox="0 0 200 100" preserveAspectRatio="none">
                                         <path d="M20,80 L60,60 L100,35 L140,25" stroke="#fff" stroke-width="2" opacity="0.2" fill="none" />
-                                        <!-- Shooting Star Candle -->
                                         <line x1="140" y1="10" x2="140" y2="25" stroke="#EA4335" stroke-width="2" />
                                         <rect x="132" y="23" width="16" height="10" fill="#EA4335" rx="2" />
-                                        <!-- After Star -->
                                         <path d="M140,25 L180,65" stroke="#EA4335" stroke-width="3" stroke-dasharray="4" />
                                     </svg>
                                     <div class="chart-label bg-red-600 text-white" style="top: 15%; left: 55%;">추세 붕괴 및 하락</div>
@@ -286,7 +282,7 @@
             </div>
         </section>
 
-        <!-- Tab 2: 심화 기술 (상세 설명 5줄 복구) -->
+        <!-- Tab 2: 심화 기술 분석 -->
         <section id="advanced" class="tab-content space-y-8">
             <div class="glass p-8 md:p-12">
                 <div class="mb-12 text-center">
@@ -437,16 +433,15 @@
                     </div>
                 </div>
 
-                <!-- Real Interactive Chart (TradingView) -->
+                <!-- Real Interactive Chart (Hybrid) -->
                 <div id="tradingview_container" class="mb-8 shadow-2xl">
                     <div class="tradingview-widget-container" style="height:100%;width:100%">
                         <div id="tradingview_chart" style="height:100%;width:100%"></div>
-                        <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
                     </div>
                 </div>
 
                 <div class="relative mb-8">
-                    <textarea id="generatedPrompt" rows="5" class="w-full bg-black/40 rounded-[2rem] p-8 text-sm border border-white/10 focus:border-white/30 outline-none resize-none leading-relaxed shadow-inner"></textarea>
+                    <textarea id="generatedPrompt" rows="6" class="w-full bg-black/40 rounded-[2rem] p-8 text-sm border border-white/10 focus:border-white/30 outline-none resize-none leading-relaxed shadow-inner"></textarea>
                     <button onclick="copyPrompt()" class="absolute top-10 right-6 p-3 bg-white/10 rounded-xl hover:bg-white/20 transition"><i data-lucide="copy" class="w-5 h-5 text-white"></i></button>
                 </div>
 
@@ -460,9 +455,12 @@
                         <p class="font-bold google-yellow text-lg animate-pulse">실시간 시장 데이터를 기반으로 알고리즘 분석 중...</p>
                     </div>
                     <div id="aiResult" class="glass bg-black/60 p-10 md:p-14 rounded-[3rem] border border-white/20 shadow-2xl">
-                        <div class="flex items-center gap-4 mb-10 pb-6 border-b border-white/10">
-                            <i data-lucide="shield-check" class="google-blue w-8 h-8"></i>
-                            <h3 class="text-3xl font-black italic tracking-tighter">AI INSIGHT REPORT</h3>
+                        <div class="flex items-center justify-between mb-10 pb-6 border-b border-white/10">
+                            <div class="flex items-center gap-4">
+                                <i data-lucide="shield-check" class="google-blue w-8 h-8"></i>
+                                <h3 class="text-3xl font-black italic tracking-tighter">AI INSIGHT REPORT</h3>
+                            </div>
+                            <p id="reportTimestamp" class="text-xs opacity-50 hidden md:block"></p>
                         </div>
                         <div id="aiResponseContent" class="space-y-6"></div>
                     </div>
@@ -470,7 +468,7 @@
             </div>
         </section>
 
-        <!-- Tab 4: 퀴즈 (상세한 내용으로 복구) -->
+        <!-- Tab 4: 실전 퀴즈 -->
         <section id="quiz" class="tab-content space-y-8 text-center max-w-3xl mx-auto">
             <div class="glass p-12 rounded-[3rem]">
                 <div class="w-24 h-24 bg-google-green/20 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl">
@@ -526,33 +524,17 @@
         </button>
     </nav>
 
-    <div id="toast" class="fixed top-28 left-1/2 -translate-x-1/2 z-[100] bg-black/90 text-white px-10 py-4 rounded-2xl text-sm font-bold opacity-0 transition-all pointer-events-none border border-white/20 shadow-2xl">복사되었습니다!</div>
+    <div id="toast" class="fixed top-28 left-1/2 -translate-x-1/2 z-[100] bg-black/90 text-white px-10 py-4 rounded-2xl text-sm font-bold opacity-0 transition-all pointer-events-none border border-white/20 shadow-2xl">알림 메시지</div>
 
+    <!-- TradingView Script -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
     <script>
         lucide.createIcons();
-let apiKey = ""; 
-const modelName = "gemini-2.5-flash-preview-09-2025";
+        
+        // [수정됨] API 키를 안전하게 입력받도록 변수로 선언 (github pages 호환)
+        let apiKey = ""; 
+        const modelName = "gemini-2.5-flash-preview-09-2025";
 
-async function runAnalysis() {
-    // [새로 추가할 부분 시작]
-    if (!apiKey) {
-        apiKey = prompt("AI 분석을 위해 Google Gemini API 키를 입력해주세요.\n(입력하신 키는 저장되지 않으며 현재 화면에서만 안전하게 사용됩니다.)");
-        if (!apiKey) {
-            alert("API 키가 입력되지 않아 분석을 취소합니다.");
-            return;
-        }
-    }
-    // [새로 추가할 부분 끝]
-
-    const area = document.getElementById('aiResponseArea');
-    const loading = document.getElementById('aiLoading');
-    const content = document.getElementById('aiResponseContent');
-    const runBtn = document.getElementById('runBtn');
-    const timestamp = document.getElementById('reportTimestamp');
-
-    // ... 이하 기존 코드와 동일 ...
-
-        // 공통 알림(Toast) 함수
         function showToast(msg) {
             const t = document.getElementById('toast');
             t.innerText = msg;
@@ -561,10 +543,9 @@ async function runAnalysis() {
             setTimeout(() => {
                 t.classList.remove('opacity-100', 'scale-100');
                 t.classList.add('opacity-0', 'scale-90');
-            }, 2500);
+            }, 3000);
         }
 
-        // 주요 종목 자동 변환 사전 (한국 주식은 6자리 코드로 맵핑)
         const symbolMap = {
             "삼성전자": "005930",
             "SK하이닉스": "000660",
@@ -594,13 +575,11 @@ async function runAnalysis() {
             document.getElementById('btn-' + tabId).classList.add('active');
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
-            // Re-init chart if switching to analysis tab to ensure correct rendering
             if(tabId === 'prompt') {
                 setTimeout(updateChart, 100);
             }
         }
 
-        // 하이브리드 차트 초기화 (해외: TradingView, 국내: 네이버 금융)
         function updateChart() {
             const symbolInput = document.getElementById('stockName').value.trim();
             let symbol = symbolInput.toUpperCase() || "AAPL";
@@ -608,7 +587,6 @@ async function runAnalysis() {
             let isKorean = false;
             let krxCode = "";
 
-            // 1. 사전에 등록된 종목명인지 확인
             if (symbolMap[symbolInput]) {
                 const mapped = symbolMap[symbolInput];
                 if (/^\d{6}$/.test(mapped)) {
@@ -618,18 +596,15 @@ async function runAnalysis() {
                     symbol = mapped;
                 }
             } 
-            // 2. 한국 종목 코드(6자리 숫자)인 경우 처리
             else if (/^\d{6}$/.test(symbol)) {
                 isKorean = true;
                 krxCode = symbol;
             } 
-            // 3. 사전에 없는 한글이 입력되었을 때 처리
             else if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(symbol)) {
-                showToast("사전에 없는 종목입니다. 임시로 삼성전자 차트를 띄웁니다. 정확한 6자리 종목코드(예: 005930)를 입력해주세요.");
+                showToast("사전에 없는 종목입니다. 임시로 삼성전자 차트를 띄웁니다. 6자리 종목코드를 입력해주세요.");
                 isKorean = true;
                 krxCode = "005930"; 
             }
-            // 4. 그 외 기본값은 미국 주식(NASDAQ/NYSE)으로 간주
             else {
                 isKorean = false;
                 if (!symbol.includes(":")) {
@@ -638,15 +613,14 @@ async function runAnalysis() {
             }
 
             const container = document.getElementById('tradingview_container');
-            container.innerHTML = ''; // 기존 내용 초기화
+            container.innerHTML = ''; 
 
             if (isKorean) {
-                // 한국 주식: 네이버 금융 실시간 일봉 차트 이미지 연동
-                const timestamp = new Date().getTime(); // 캐시 방지
+                const timestamp = new Date().getTime();
                 const imgUrl = `https://ssl.pstatic.net/imgfinance/chart/item/candle/day/${krxCode}.png?sidcode=${timestamp}`;
                 
                 container.innerHTML = `
-                    <div class="w-full h-full flex flex-col items-center justify-center bg-slate-50 rounded-[1.5rem] relative p-6">
+                    <div class="w-full h-full flex flex-col items-center justify-center bg-slate-50 relative p-6">
                         <div class="absolute top-4 left-4 bg-google-blue text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md z-10 flex items-center gap-1">
                             <i data-lucide="bar-chart-2" class="w-4 h-4"></i> 국내 주식 (일봉)
                         </div>
@@ -658,7 +632,6 @@ async function runAnalysis() {
                 `;
                 lucide.createIcons();
             } else {
-                // 해외 주식: TradingView 위젯 사용
                 container.innerHTML = `<div id="tradingview_chart" style="height:100%;width:100%"></div>`;
                 new TradingView.widget({
                     "autosize": true,
@@ -705,7 +678,6 @@ async function runAnalysis() {
                 systemInstruction: { parts: [{ text: "당신은 냉철한 데이터 분석 전문가입니다. 분석 결과는 항상 명확한 구조의 리포트 형태로 작성하며, 불필요한 서론은 제외합니다." }] }
             };
             
-            // Exponential backoff
             for (let i = 0; i < 5; i++) {
                 try {
                     const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -719,7 +691,6 @@ async function runAnalysis() {
             throw new Error("분석 서버 응답이 지연되고 있습니다. 잠시 후 시도해주세요.");
         }
 
-        // Format AI response to look like a professional report
         function formatResult(text) {
             if (!text) return "";
             const lines = text.split('\n');
@@ -734,7 +705,6 @@ async function runAnalysis() {
                     html += `<div class="result-section"><h4><i data-lucide="check-square" class="w-5 h-5"></i> ${title}</h4>`;
                     inSection = true;
                 } else if (tr) {
-                    // Make sure bold formatting inside text maps to yellow highlight
                     const formatted = tr.replace(/\*\*(.*?)\*\*/g, '<b class="google-yellow font-bold">$1</b>');
                     html += `<p class="mb-3 text-[15px] opacity-90 leading-relaxed">${formatted}</p>`;
                 }
@@ -744,10 +714,20 @@ async function runAnalysis() {
         }
 
         async function runAnalysis() {
+            // [추가됨] API 키 팝업 로직
+            if (!apiKey) {
+                apiKey = prompt("AI 분석을 위해 Google Gemini API 키를 입력해주세요.\n(입력하신 키는 저장되지 않으며 현재 화면에서만 안전하게 사용됩니다.)");
+                if (!apiKey) {
+                    showToast("API 키가 입력되지 않아 분석을 취소합니다.");
+                    return;
+                }
+            }
+
             const area = document.getElementById('aiResponseArea');
             const loading = document.getElementById('aiLoading');
             const content = document.getElementById('aiResponseContent');
             const runBtn = document.getElementById('runBtn');
+            const timestamp = document.getElementById('reportTimestamp');
             
             area.classList.remove('hidden');
             loading.classList.remove('hidden');
@@ -755,6 +735,10 @@ async function runAnalysis() {
             runBtn.disabled = true;
             runBtn.style.opacity = "0.5";
             
+            if(timestamp) {
+                timestamp.innerText = `Report ID: ${crypto.randomUUID().slice(0,8).toUpperCase()} | 분석일시: ${new Date().toLocaleString()}`;
+            }
+
             try {
                 const res = await fetchGemini(pDi.value);
                 content.innerHTML = formatResult(res);
@@ -762,6 +746,8 @@ async function runAnalysis() {
             } catch (err) {
                 content.innerHTML = `<div class="p-8 bg-red-500/20 border border-red-500/30 rounded-3xl flex items-center gap-4 text-red-200"><i data-lucide="alert-circle" class="w-8 h-8"></i><span class="text-lg">${err.message}</span></div>`;
                 lucide.createIcons();
+                // 키 오류일 수 있으므로 키 리셋 옵션을 줍니다.
+                apiKey = ""; 
             } finally {
                 loading.classList.add('hidden');
                 runBtn.disabled = false;
@@ -797,7 +783,7 @@ async function runAnalysis() {
 
         window.onload = () => {
             updatePrompt();
-            updateChart(); // Initialize TradingView chart
+            updateChart();
             showTab('concept');
         };
     </script>
