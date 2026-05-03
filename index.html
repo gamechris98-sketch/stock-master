@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주식 분석 마스터 실습 웹앱 v3.0</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background: linear-gradient(135deg, #1A1C1E, #2C3E50, #000000);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #fff;
+            line-height: 1.7;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2rem;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+
+        .btn-hover:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.2);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+
+        .google-blue { color: #4285F4; }
+        .google-green { color: #34A853; }
+        .google-yellow { color: #FBBC05; }
+        .google-red { color: #EA4335; }
+
+        .chart-viz {
+            background: rgba(0,0,0,0.6);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .chart-line {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .chart-label {
+            position: absolute;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 8px;
+            z-index: 10;
+        }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top-color: #4285F4;
+            animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 6px solid #4285F4;
+            transition: transform 0.3s ease;
+        }
+        .result-section:hover {
+            transform: translateX(5px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .result-section h4 {
+            font-weight: 900;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #FBBC05;
+            font-size: 1.2rem;
+        }
+
+        #tradingview_container {
+            width: 100%;
+            height: 500px;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body class="flex flex-col">
+
+    <!-- Header -->
+    <header class="fixed top-0 w-full z-50 glass rounded-none border-t-0 border-x-0 bg-black/40 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-xl">
+                <i data-lucide="trending-up" class="google-blue w-6 h-6"></i>
+            </div>
+            <h1 class="text-xl font-extrabold tracking-tight">StockMaster <span class="font-normal text-xs opacity-50 uppercase tracking-tighter">v3.0 Ultimate</span></h1>
+        </div>
+        <div class="text-[11px] font-bold opacity-60 hidden md:block">Designed for students by [강사 이름 입력]</div>
+    </header>
+
+    <main class="flex-grow pt-28 pb-36 px-4 max-w-6xl mx-auto w-full">
+        
+        <!-- Tab 1: 기초 개념 마스터 (상세 설명 5줄 복구) -->
+        <section id="concept" class="tab-content active space-y-10">
+            <div class="glass p-8 md:p-12">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-black mb-4">기술적 분석 기초 마스터 5선</h2>
+                    <p class="opacity-60 max-w-2xl mx-auto">차트의 언어를 이해하는 첫 번째 단계입니다. 각 지표가 가지는 수학적 의미와 시장의 심리를 상세하게 학습해봅시다.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <!-- 1. 이동평균선 -->
+                    <div class="bg-white/5 p-8 rounded-3xl border border-white/10 flex flex-col">
+                        <h3 class="text-xl font-bold mb-4 google-red flex items-center gap-2"><i data-lucide="line-chart"></i> 1. 이동평균선 (MA)</h3>
+                        <div class="text-sm opacity-90 mb-6 space-y-2">
+                            <p>이동평균선은 특정 기간 동안의 주가를 산술 평균하여 선으로 연결한 지표로, 주가의 '평균적인 흐름'을 보여줍니다.</p>
+                            <p>5일선은 단기 심리를, 20일선은 한 달간의 매매 원가를, 60일선은 수급의 방향성을 나타내는 중요한 기준이 됩니다.</p>
+                            <p>단기 이평선이 장기 이평선을 아래에서 위로 뚫고 올라가는 '골든크로스'는 강력한 매수 신호로 해석됩니다.</p>
+                            <p>반대로 위에서 아래로 뚫고 내려가는 '데드크로스'는 추세 하락의 시작을 알리는 경고등 역할을 수행합니다.</p>
+                            <p>이평선 사이의 간격이 벌어지는 이격도 분석을 통해 현재 주가의 과도한 상승이나 하락 여부를 판단할 수 있습니다.</p>
+                        </div>
+                        <div class="chart-viz mt-auto">
+                            <svg class="chart-line" viewBox="0 0 200 100" preserveAspectRatio="none">
+                                <path d="M0,85 Q50,75 100,55 T200,35" stroke="#FBBC05" stroke-width="2" fill="none" opacity="0.4" />
+                                <path d="M0,98 L40,85 L85,65 L105,55 L150,35 L200,25" stroke="#EA4335" stroke-width="4" fill="none" />
+                                <circle cx="105" cy="55" r="8" fill="#EA4335" opacity="0.3"><animate attributeName="r" values="8;12;8" dur="1.5s" repeatCount="indefinite" /></circle>
+                            </svg>
+                            <div class="chart-label bg-red-600 text-white shadow-lg" style="top: 40%; left: 58%;">Golden Cross</div>
+                        </div>
+                    </div>
+
+                    <!-- 2. RSI -->
+                    <div class="bg-white/5 p-8 rounded-3xl border border-white/10 flex flex-col">
+                        <h3 class="text-xl font-bold mb-4 google-green flex items-center gap-2"><i data-lucide="gauge"></i> 2. 상대강도지수 (RSI)</h3>
+                        <div class="text-sm opacity-90 mb-6 space-y-2">
+                            <p>RSI는 현재 주가의 상승 압력과 하락 압력 간의 상대적인 강도를 0에서 100 사이의 수치로 나타내는 보조지표입니다.</p>
+                            <p>주로 14일 기간을 설정하여 사용하며, 주가가 오를 때의 힘이 얼마나 강력한지를 수학적으로 계산해 줍니다.</p>
+                            <p>70 이상인 구간은 '과매수' 상태로, 시장 참여자들의 탐욕이 극에 달해 곧 조정이 올 가능성이 높음을 시사합니다.</p>
+                            <p>30 이하인 구간은 '과매도' 상태로, 과도한 공포로 인해 매도세가 진정되고 기술적 반등이 나올 확률이 큽니다.</p>
+                            <p>지수가 50 부근에서 머무는 것은 추세의 방향성이 결정되지 않은 혼조세를 의미하므로 신중한 접근이 필요합니다.</p>
+                        </div>
+                        <div class="chart-viz mt-auto">
+                            <svg class="chart-line" viewBox="0 0 200 100" preserveAspectRatio="none">
+                                <rect x="0" y="0" width="200" height="30" fill="#EA4335" opacity="0.15" />
+                                <rect x="0" y="70" width="200" height="30" fill="#34A853" opacity="0.15" />
+                                <line x1="0" y1="30" x2="200" y2="30" stroke="#EA4335" stroke-dasharray="4" opacity="0.3" />
+                                <line x1="0" y1="70" x2="200" y2="70" stroke="#34A853" stroke-dasharray="4" opacity="0.3" />
+                                <path d="M0,65 L35,88 L70,45 L105,15 L145,85 L200,55" stroke="#34A853" stroke-width="3" fill="none" />
+                            </svg>
+                            <div class="chart-label bg-green-700 text-white shadow-lg" style="bottom: 8%; left: 15%;">Buy Signal (30-)</div>
+                        </div>
+                    </div>
+
+                    <!-- 3. 거래량 -->
+                    <div class="bg-white/5 p-8 rounded-3xl border border-white/10 flex flex-col">
+                        <h3 class="text-xl font-bold mb-4 google-yellow flex items-center gap-2"><i data-lucide="bar-chart-3"></i> 3. 거래량 (Volume)</h3>
+                        <div class="text-sm opacity-90 mb-6 space-y-2">
+                            <p>거래량은 주식 시장의 '연료'와 같습니다. 주가가 상승할 때 거래량이 동반되지 않는다면 그 상승은 신뢰하기 어렵습니다.</p>
+                            <p>거래량은 주가에 선행하거나 동행하는 성격이 강해, 주가 변화의 전조 증상을 포착하는 데 결정적인 힌트를 줍니다.</p>
+                            <p>바닥권에서 대량 거래가 발생하며 주가가 머리를 들면, 이는 세력의 개입이나 매집이 완료되었음을 의미할 수 있습니다.</p>
+                            <p>반대로 고점에서 거래량이 터지며 주가가 힘을 못 쓴다면, 이는 큰손들이 물량을 넘기고 떠나는 신호로 볼 수 있습니다.</p>
+                            <p>거래량 이동평균선을 함께 활용하면 현재의 거래가 평소보다 얼마나 활발한지를 직관적으로 비교 분석 가능합니다.</p>
+                        </div>
+                        <div class="chart-viz mt-auto flex items-end gap-1.5 px-4">
+                            <div class="bg-red-500/40 w-full h-[20%]"></div>
+                            <div class="bg-red-500/40 w-full h-[35%]"></div>
+                            <div class="bg-red-500 w-full h-[95%] shadow-lg shadow-red-500/50"></div>
+                            <div class="bg-green-500/40 w-full h-[55%]"></div>
+                            <div class="bg-green-500/40 w-full h-[45%]"></div>
+                            <div class="bg-green-500/40 w-full h-[30%]"></div>
+                            <div class="bg-red-500/40 w-full h-[70%]"></div>
+                        </div>
+                    </div>
+
+                    <!-- 4. 지지와 저항 -->
+                    <div class="bg-white/5 p-8 rounded-3xl border border-white/10 flex flex-col">
+                        <h3 class="text-xl font-bold mb-4 google-blue flex items-center gap-2"><i data-lucide="arrow-up-down"></i> 4. 지지와 저항</h3>
+                        <div class="text-sm opacity-90 mb-6 space-y-2">
+                            <p>지지선은 주가가 하락하다가도 특정 가격대만 오면 매수세가 유입되어 더 이상 떨어지지 않으려 하는 심리적 바닥입니다.</p>
+                            <p>저항선은 반대로 주가가 상승하다가 특정 가격대에서 매도 물량이 쏟아지며 돌파하지 못하는 천장을 의미합니다.</p>
+                            <p>저항선이 강력한 거래량과 함께 돌파되면, 그 시점부터 해당 저항선은 강력한 지지선으로 역할이 바뀌게 됩니다.</p>
+                            <p>이러한 원리를 '역할 역전(Role Reversal)'이라고 하며, 추세의 지속성을 판단하는 핵심적인 근거가 됩니다.</p>
+                            <p>지지선과 저항선 사이의 박스권 매매는 가장 기초적이면서도 확률 높은 실전 전략 중 하나로 꼽힙니다.</p>
+                        </div>
+                        <div class="chart-viz mt-auto">
+                            <svg class="chart-line" viewBox="0 0 200 100" preserveAspectRatio="none">
+                                <line x1="0" y1="25" x2="200" y2="25" stroke="#EA4335" stroke-dasharray="6" stroke-width="2" opacity="0.6" />
+                                <line x1="0" y1="80" x2="200" y2="80" stroke="#4285F4" stroke-dasharray="6" stroke-width="2" opacity="0.6" />
+                                <path d="M0,80 L40,25 L80,80 L120,25 L160,80 L200,25" stroke="#FBBC05" stroke-width="3" fill="none" opacity="0.9" />
+                            </svg>
+                            <div class="chart-label bg-blue-600 text-white" style="bottom: 10%; left: 40%;">Support Line</div>
+                        </div>
+                    </div>
+
+                    <!-- 5. 캔들스틱 특수형 -->
+                    <div class="md:col-span-2 glass bg-white/5 p-8 rounded-[2.5rem] border border-white/10">
+                        <h3 class="text-2xl font-black mb-6 flex items-center gap-3"><i data-lucide="candlestick-chart" class="text-white"></i> 5. 캔들스틱 반전 패턴 집중 탐구</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                            <!-- Hammer -->
+                            <div class="space-y-4">
+                                <h4 class="font-bold text-google-blue flex items-center gap-2 text-lg">망치형 (Hammer)</h4>
+                                <div class="text-sm opacity-80 space-y-2">
+                                    <p>하락 추세의 끝자락에서 발생하는 가장 신뢰도 높은 반전 패턴 중 하나입니다.</p>
+                                    <p>장중 한때 폭락했으나 매수세가 강력하게 유입되어 시가 부근까지 가격을 회복한 형태입니다.</p>
+                                    <p>긴 밑꼬리는 '저가 매수세의 승리'를 상징하며 강력한 바닥 신호로 해석됩니다.</p>
+                                </div>
+                                <div class="chart-viz bg-blue-500/10">
+                                    <svg class="chart-line" viewBox="0 0 200 100" preserveAspectRatio="none">
+                                        <path d="M20,20 L60,50 L100,75 L140,80" stroke="#fff" stroke-width="2" opacity="0.2" fill="none" />
+                                        <!-- Hammer Candle -->
+                                        <line x1="140" y1="80" x2="140" y2="95" stroke="#4285F4" stroke-width="2" />
+                                        <rect x="132" y="78" width="16" height="10" fill="#4285F4" rx="2" />
+                                        <!-- After Hammer -->
+                                        <path d="M140,80 L180,40" stroke="#34A853" stroke-width="3" stroke-dasharray="4" />
+                                    </svg>
+                                    <div class="chart-label bg-blue-600 text-white" style="bottom: 15%; left: 55%;">하락 멈춤 및 반등</div>
+                                </div>
+                            </div>
+                            <!-- Shooting Star -->
+                            <div class="space-y-4">
+                                <h4 class="font-bold text-google-red flex items-center gap-2 text-lg">유성형 (Shooting Star)</h4>
+                                <div class="text-sm opacity-80 space-y-2">
+                                    <p>상승 추세의 고점에서 발생하며, 탐욕이 공포로 바뀌는 순간을 포착합니다.</p>
+                                    <p>장중 급등했으나 매도 물량이 쏟아지며 긴 윗꼬리를 남기고 시가 근처로 내려온 형태입니다.</p>
+                                    <p>긴 윗꼬리는 '상단 저항의 강력함'을 뜻하며 하락 전환의 전조 증상입니다.</p>
+                                </div>
+                                <div class="chart-viz bg-red-500/10">
+                                    <svg class="chart-line" viewBox="0 0 200 100" preserveAspectRatio="none">
+                                        <path d="M20,80 L60,60 L100,35 L140,25" stroke="#fff" stroke-width="2" opacity="0.2" fill="none" />
+                                        <!-- Shooting Star Candle -->
+                                        <line x1="140" y1="10" x2="140" y2="25" stroke="#EA4335" stroke-width="2" />
+                                        <rect x="132" y="23" width="16" height="10" fill="#EA4335" rx="2" />
+                                        <!-- After Star -->
+                                        <path d="M140,25 L180,65" stroke="#EA4335" stroke-width="3" stroke-dasharray="4" />
+                                    </svg>
+                                    <div class="chart-label bg-red-600 text-white" style="top: 15%; left: 55%;">추세 붕괴 및 하락</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 2: 심화 기술 (상세 설명 5줄 복구) -->
+        <section id="advanced" class="tab-content space-y-8">
+            <div class="glass p-8 md:p-12">
+                <div class="mb-12 text-center">
+                    <h2 class="text-4xl font-black mb-4">주식 분석 심화 기술 5선</h2>
+                    <p class="opacity-70 max-w-2xl mx-auto">단일 지표의 한계를 극복하기 위해 복합적인 신호를 읽어내는 고급 분석 기술입니다.</p>
+                </div>
+
+                <div class="space-y-10">
+                    <!-- 1. RSI 다이버전스 -->
+                    <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
+                        <h3 class="text-2xl font-bold mb-4 google-green flex items-center gap-2">1. RSI 상승 다이버전스 (Divergence)</h3>
+                        <div class="text-sm opacity-90 mb-6 space-y-2">
+                            <p>다이버전스는 '주가의 방향'과 '지표의 방향'이 서로 엇갈릴 때 발생하는 강력한 추세 반전 신호입니다.</p>
+                            <p>주가는 이전 저점보다 더 낮은 저점을 형성하고 있음에도 불구하고, RSI 지표는 이전보다 높은 저점을 만들 때 발생합니다.</p>
+                            <p>이는 주가는 하락하고 있지만 하락하려는 에너지(모멘텀)가 이미 소진되어 가고 있음을 수학적으로 증명하는 것입니다.</p>
+                            <p>실제 차트에서 이 신호를 포착한다면, 공포에 질려 매도하기보다는 매수 관점에서 반등을 준비해야 하는 절호의 기회입니다.</p>
+                            <p>특히 과매도권(30 이하)에서 발생하는 다이버전스는 그 신뢰도가 매우 높아 전문 트레이더들이 가장 선호하는 패턴입니다.</p>
+                        </div>
+                        <div class="chart-viz">
+                            <svg class="chart-line" viewBox="0 0 200 100" preserveAspectRatio="none">
+                                <path d="M20,30 L100,75 L180,95" stroke="#fff" stroke-width="2" opacity="0.3" fill="none" stroke-dasharray="4" />
+                                <path d="M20,80 L100,65 L180,50" stroke="#34A853" stroke-width="4" fill="none" />
+                                <circle cx="100" cy="65" r="5" fill="#34A853" opacity="0.5" />
+                                <circle cx="180" cy="50" r="5" fill="#34A853" />
+                            </svg>
+                            <div class="chart-label bg-indigo-600 text-white" style="top: 25%; left: 60%;">상승 다이버전스 (반등 임박)</div>
+                        </div>
+                    </div>
+
+                    <!-- 2. 볼린저 밴드 스퀴즈 -->
+                    <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
+                        <h3 class="text-2xl font-bold mb-4 google-yellow flex items-center gap-2">2. 볼린저 밴드 스퀴즈 & 돌파</h3>
+                        <div class="text-sm opacity-90 mb-6 space-y-2">
+                            <p>볼린저 밴드는 주가의 변동성을 통계적 표준편차로 나타낸 것으로, 밴드의 폭은 현재 시장의 에너지가 얼마나 응축되었는지 보여줍니다.</p>
+                            <p>밴드 폭이 극도로 좁아지는 현상을 '스퀴즈(Squeeze)'라고 하며, 이는 조만간 강력한 방향성이 결정될 것임을 예고하는 폭풍전야와 같습니다.</p>
+                            <p>이때 주가가 강력한 거래량을 동반하며 상단 밴드를 돌파하면, 이는 새로운 대세 상승장의 시작을 알리는 신호입니다.</p>
+                            <p>스퀴즈 상태에서 에너지가 응축된 만큼, 돌파 후 발생하는 시세는 매우 빠르고 강력하게 진행되는 특징이 있습니다.</p>
+                            <p>주의할 점은 하단 밴드를 이탈할 경우 역시 강력한 하락 추세가 시작될 수 있으므로 손절 원칙을 철저히 지켜야 합니다.</p>
+                        </div>
+                        <div class="chart-viz">
+                            <svg class="chart-line" viewBox="0 0 200 100" preserveAspectRatio="none">
+                                <path d="M0,35 Q100,50 200,10" stroke="white" stroke-width="1" opacity="0.2" fill="none" />
+                                <path d="M0,65 Q100,50 200,90" stroke="white" stroke-width="1" opacity="0.2" fill="none" />
+                                <path d="M0,50 L90,50 L125,35 L190,15" stroke="#FBBC05" stroke-width="4" fill="none" />
+                            </svg>
+                            <div class="chart-label bg-yellow-500 text-black" style="top: 15%; left: 55%;">에너지 폭발! 상단 돌파</div>
+                        </div>
+                    </div>
+
+                    <!-- 3. MACD 히스토그램 반전 -->
+                    <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
+                        <h3 class="text-2xl font-bold mb-4 google-blue flex items-center gap-2">3. MACD 히스토그램 추세 가속 분석</h3>
+                        <div class="text-sm opacity-90 mb-6 space-y-2">
+                            <p>MACD 히스토그램은 단기 이동평균선과 장기 이동평균선 사이의 거리를 막대그래프로 시각화한 모멘텀 지표입니다.</p>
+                            <p>막대가 0선 위에 있으면 상승 추세를, 0선 아래에 있으면 하락 추세를 의미하며 막대 길이는 추세의 속도를 보여줍니다.</p>
+                            <p>하락장에서 음수 영역의 막대 길이가 가장 길어졌다가 다시 짧아지기 시작하는 지점은 하락의 가속도가 줄어드는 첫 신호입니다.</p>
+                            <p>이 지점에서 MACD 선이 시그널선을 골든크로스 하게 되면, 하락 추세가 마무리되고 상승으로의 본격적인 전환이 일어납니다.</p>
+                            <p>추세의 발생보다 한발 앞서 모멘텀의 변화를 읽어낼 수 있어 선제적인 의사결정에 매우 유리한 도구입니다.</p>
+                        </div>
+                        <div class="chart-viz flex items-center justify-center bg-black/60">
+                            <svg class="w-full h-full" viewBox="0 0 200 100" preserveAspectRatio="none">
+                                <line x1="0" y1="50" x2="200" y2="50" stroke="white" opacity="0.4" />
+                                <rect x="30" y="50" width="12" height="35" fill="#EA4335" opacity="0.4" />
+                                <rect x="55" y="50" width="12" height="45" fill="#EA4335" opacity="0.6" />
+                                <rect x="80" y="50" width="12" height="25" fill="#EA4335" opacity="0.4" />
+                                <rect x="105" y="35" width="12" height="15" fill="#4285F4" opacity="0.7" />
+                                <rect x="130" y="20" width="12" height="30" fill="#4285F4" opacity="0.9" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- 4. 거래량 수반 돌파 -->
+                    <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
+                        <h3 class="text-2xl font-bold mb-4 google-red flex items-center gap-2">4. 거래량 수반 대량 매물대 돌파</h3>
+                        <div class="text-sm opacity-90 mb-6 space-y-2">
+                            <p>모든 저항 돌파가 유효한 것은 아닙니다. 거래량이 실리지 않은 돌파는 다시 박스권 안으로 회귀하는 '속임수'일 확률이 높습니다.</p>
+                            <p>강력한 매물이 쌓인 저항 가격대를 뚫기 위해서는 이전 평균 거래량의 최소 2~3배 이상이 터져야 그 진정성이 인정됩니다.</p>
+                            <p>대량 거래와 함께 돌파에 성공하면, 그 가격대에서 물려있던 매도세가 모두 해소되었음을 의미하며 주가는 가볍게 상승할 수 있습니다.</p>
+                            <p>이후 주가가 다시 내려오더라도 이전에 대량 거래로 돌파했던 가격대에서는 강력한 지지세가 유입되는 경향이 큽니다.</p>
+                            <p>따라서 거래량 없는 돌파는 무시하고, 확실한 에너지가 실린 돌파 시점에만 진입하는 것이 성공 확률을 비약적으로 높여줍니다.</p>
+                        </div>
+                        <div class="chart-viz flex flex-col justify-between">
+                            <svg class="w-full h-1/2" viewBox="0 0 200 100" preserveAspectRatio="none">
+                                <line x1="0" y1="50" x2="200" y2="50" stroke="#EA4335" stroke-dasharray="6" stroke-width="2" />
+                                <path d="M0,80 L50,75 L100,50 L125,30 L180,15" stroke="#FBBC05" stroke-width="4" fill="none" />
+                            </svg>
+                            <div class="flex items-end gap-1.5 h-1/3 px-4">
+                                <div class="bg-white/20 w-full h-1/3"></div>
+                                <div class="bg-white/20 w-full h-1/2"></div>
+                                <div class="bg-red-500 w-full h-full shadow-lg shadow-red-500/50"></div>
+                                <div class="bg-red-500 w-full h-[80%]"></div>
+                            </div>
+                            <div class="chart-label bg-red-600 text-white" style="top: 25%; left: 55%;">확정적 돌파 신호</div>
+                        </div>
+                    </div>
+
+                    <!-- 5. 피보나치 되돌림 -->
+                    <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
+                        <h3 class="text-2xl font-bold mb-4 text-indigo-400 flex items-center gap-2">5. 피보나치 황금비 되돌림 (0.618)</h3>
+                        <div class="text-sm opacity-90 mb-6 space-y-2">
+                            <p>피보나치 되돌림은 자연계의 황금비를 주식 시장에 적용한 것으로, 상승 후 주가가 어디까지 조정받을지 예측하는 도구입니다.</p>
+                            <p>주가가 급등한 후 다시 하락할 때, 전체 상승폭의 61.8% 지점은 가장 강력한 지지 작용이 일어나는 '골든 존'입니다.</p>
+                            <p>강세장에서는 주가가 이 지점을 깨지 않고 다시 반등하며 전고점을 뚫는 패턴이 매우 빈번하게 나타납니다.</p>
+                            <p>만약 0.618 지지선을 이탈한다면 해당 주식의 상승 추세가 이미 훼손된 것으로 보고 리스크 관리에 들어가야 합니다.</p>
+                            <p>이 수치를 활용하면 막연한 기다림이 아니라, 통계적으로 확률 높은 지점에서 분할 매수 전략을 세울 수 있습니다.</p>
+                        </div>
+                        <div class="chart-viz">
+                            <svg class="chart-line" viewBox="0 0 200 100" preserveAspectRatio="none">
+                                <path d="M0,95 L80,20 L125,65 L190,10" stroke="#fff" stroke-width="3" fill="none" />
+                                <line x1="0" y1="65" x2="200" y2="65" stroke="#4285F4" stroke-dasharray="4" stroke-width="2" />
+                                <text x="5" y="60" fill="#4285F4" font-size="12" font-weight="bold">0.618 Support</text>
+                                <circle cx="125" cy="65" r="7" fill="#4285F4" opacity="0.4"><animate attributeName="r" values="7;10;7" dur="2s" repeatCount="indefinite" /></circle>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 3: AI 분석 및 실제 차트 -->
+        <section id="prompt" class="tab-content space-y-8">
+            <div class="glass p-8 md:p-12">
+                <h2 class="text-2xl font-black mb-8 flex items-center gap-3"><i data-lucide="line-chart" class="google-blue"></i> 실시간 시장 데이터 및 AI 분석 리포트</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="relative">
+                        <label class="block text-xs font-bold opacity-60 mb-2 ml-1 uppercase">Stock Symbol</label>
+                        <input type="text" id="stockName" placeholder="AAPL, TSLA, 삼성전자" value="AAPL" class="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-4 text-white focus:ring-4 focus:ring-blue-500/20 outline-none uppercase font-bold">
+                        <button onclick="updateChart()" class="absolute right-2 top-[34px] p-2 bg-blue-600 rounded-xl hover:bg-blue-500 transition-colors">
+                            <i data-lucide="refresh-cw" class="w-5 h-5 text-white"></i>
+                        </button>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold opacity-60 mb-2 ml-1 uppercase">Indicators</label>
+                        <select id="indicator" class="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-4 text-white appearance-none outline-none focus:ring-4 focus:ring-white/10">
+                            <option value="기초(이평선+RSI+거래량)" class="bg-slate-900 text-white">기초(이평선+RSI+거래량)</option>
+                            <option value="심화(다이버전스+스퀴즈+MACD)" class="bg-slate-900 text-white">심화(다이버전스+스퀴즈+MACD)</option>
+                            <option value="종합 기술적/심리적 분석" class="bg-slate-900 text-white">종합 기술적/심리적 분석</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold opacity-60 mb-2 ml-1 uppercase">Investment Style</label>
+                        <select id="investStyle" class="w-full bg-white/10 border border-white/20 rounded-2xl px-6 py-4 text-white appearance-none outline-none focus:ring-4 focus:ring-white/10">
+                            <option value="단기 데이트레이딩" class="bg-slate-900 text-white">단기 데이트레이딩 (Day)</option>
+                            <option value="중기 스윙 투자" class="bg-slate-900 text-white">중기 스윙 투자 (Swing)</option>
+                            <option value="장기 가치 투자" class="bg-slate-900 text-white">장기 가치 투자 (Long-term)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Real Interactive Chart (TradingView) -->
+                <div id="tradingview_container" class="mb-8 shadow-2xl">
+                    <div class="tradingview-widget-container" style="height:100%;width:100%">
+                        <div id="tradingview_chart" style="height:100%;width:100%"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+                    </div>
+                </div>
+
+                <div class="relative mb-8">
+                    <textarea id="generatedPrompt" rows="5" class="w-full bg-black/40 rounded-[2rem] p-8 text-sm border border-white/10 focus:border-white/30 outline-none resize-none leading-relaxed shadow-inner"></textarea>
+                    <button onclick="copyPrompt()" class="absolute top-10 right-6 p-3 bg-white/10 rounded-xl hover:bg-white/20 transition"><i data-lucide="copy" class="w-5 h-5 text-white"></i></button>
+                </div>
+
+                <button id="runBtn" onclick="runAnalysis()" class="w-full py-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-800 rounded-[2.5rem] font-black text-xl flex items-center justify-center gap-4 shadow-2xl btn-hover text-white">
+                    <i data-lucide="cpu" class="w-6 h-6 animate-pulse"></i> AI 심층 분석 리포트 생성
+                </button>
+
+                <div id="aiResponseArea" class="hidden mt-12">
+                    <div id="aiLoading" class="hidden flex flex-col items-center py-20 glass bg-white/5 rounded-[3rem]">
+                        <div class="spinner mb-6"></div>
+                        <p class="font-bold google-yellow text-lg animate-pulse">실시간 시장 데이터를 기반으로 알고리즘 분석 중...</p>
+                    </div>
+                    <div id="aiResult" class="glass bg-black/60 p-10 md:p-14 rounded-[3rem] border border-white/20 shadow-2xl">
+                        <div class="flex items-center gap-4 mb-10 pb-6 border-b border-white/10">
+                            <i data-lucide="shield-check" class="google-blue w-8 h-8"></i>
+                            <h3 class="text-3xl font-black italic tracking-tighter">AI INSIGHT REPORT</h3>
+                        </div>
+                        <div id="aiResponseContent" class="space-y-6"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 4: 퀴즈 (상세한 내용으로 복구) -->
+        <section id="quiz" class="tab-content space-y-8 text-center max-w-3xl mx-auto">
+            <div class="glass p-12 rounded-[3rem]">
+                <div class="w-24 h-24 bg-google-green/20 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl">
+                    <i data-lucide="award" class="google-green w-12 h-12"></i>
+                </div>
+                <h2 class="text-4xl font-black mb-10">주식 마스터 실전 테스트</h2>
+                <div id="quizContainer" class="space-y-10">
+                    <div class="p-8 bg-white/5 rounded-3xl border border-white/10 text-left">
+                        <span class="text-xs font-bold google-yellow mb-2 block uppercase tracking-widest">Question #01</span>
+                        <h3 class="text-xl font-bold mb-8 leading-relaxed">주가가 전고점 저항선에 도달하여 이를 돌파하려고 합니다. 이때 돌파의 '진정성'을 확인하기 위해 반드시 동반되어야 하는 가장 중요한 보조 지표는 무엇인가요?</h3>
+                        <div class="grid grid-cols-1 gap-4">
+                            <button onclick="checkAnswer(false)" class="btn-hover p-6 bg-white/10 rounded-2xl border border-white/10 text-left hover:bg-white/20 transition-colors">
+                                1. 보조지표보다는 관련된 루머나 찌라시가 많은지 커뮤니티 반응을 확인한다.
+                            </button>
+                            <button onclick="checkAnswer(true)" class="btn-hover p-6 bg-white/10 rounded-2xl border border-white/10 text-left hover:bg-blue-500/20 transition-colors">
+                                2. 이전 평균치보다 압도적으로 많은 '대량의 거래량'이 실렸는지 확인한다.
+                            </button>
+                            <button onclick="checkAnswer(false)" class="btn-hover p-6 bg-white/10 rounded-2xl border border-white/10 text-left hover:bg-white/20 transition-colors">
+                                3. 볼린저 밴드의 폭이 가장 넓어질 때까지 기다렸다가 매수한다.
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="quizResult" class="hidden">
+                    <div class="p-10 bg-green-500/20 rounded-[2.5rem] border border-green-500/40 shadow-2xl">
+                        <h4 class="text-3xl font-black mb-4">완벽한 분석입니다!</h4>
+                        <p class="opacity-80 text-lg">거래량은 주가를 움직이는 강력한 연료입니다. 연료가 충분히 실린 돌파만이 진짜 상승 추세를 만들어냅니다.</p>
+                    </div>
+                    <button onclick="resetQuiz()" class="mt-8 btn-hover font-bold opacity-60 underline text-lg">다시 도전하기</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-0 w-full z-50 glass rounded-none border-b-0 border-x-0 bg-black/60 px-4 py-4 pb-8 md:pb-6 flex justify-around">
+        <button onclick="showTab('concept')" class="tab-btn flex flex-col items-center gap-1.5 group active" id="btn-concept">
+            <i data-lucide="book-open" class="w-6 h-6 opacity-40 group-[.active]:opacity-100 group-[.active]:google-blue transition-all"></i>
+            <span class="text-[11px] font-bold opacity-40 group-[.active]:opacity-100">기초 5선</span>
+        </button>
+        <button onclick="showTab('advanced')" class="tab-btn flex flex-col items-center gap-1.5 group" id="btn-advanced">
+            <i data-lucide="layers" class="w-6 h-6 opacity-40 group-[.active]:opacity-100 group-[.active]:google-yellow transition-all"></i>
+            <span class="text-[11px] font-bold opacity-40 group-[.active]:opacity-100">심화 5선</span>
+        </button>
+        <button onclick="showTab('prompt')" class="tab-btn flex flex-col items-center gap-1.5 group" id="btn-prompt">
+            <i data-lucide="line-chart" class="w-6 h-6 opacity-40 group-[.active]:opacity-100 group-[.active]:google-red transition-all"></i>
+            <span class="text-[11px] font-bold opacity-40 group-[.active]:opacity-100">AI 차트분석</span>
+        </button>
+        <button onclick="showTab('quiz')" class="tab-btn flex flex-col items-center gap-1.5 group" id="btn-quiz">
+            <i data-lucide="award" class="w-6 h-6 opacity-40 group-[.active]:opacity-100 group-[.active]:google-green transition-all"></i>
+            <span class="text-[11px] font-bold opacity-40 group-[.active]:opacity-100">실전 퀴즈</span>
+        </button>
+    </nav>
+
+    <div id="toast" class="fixed top-28 left-1/2 -translate-x-1/2 z-[100] bg-black/90 text-white px-10 py-4 rounded-2xl text-sm font-bold opacity-0 transition-all pointer-events-none border border-white/20 shadow-2xl">복사되었습니다!</div>
+
+    <script>
+        lucide.createIcons();
+        const apiKey = ""; 
+        const modelName = "gemini-2.5-flash-preview-09-2025";
+
+        // 공통 알림(Toast) 함수
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('opacity-0', 'scale-90');
+            t.classList.add('opacity-100', 'scale-100');
+            setTimeout(() => {
+                t.classList.remove('opacity-100', 'scale-100');
+                t.classList.add('opacity-0', 'scale-90');
+            }, 2500);
+        }
+
+        // 주요 종목 자동 변환 사전 (한국 주식은 6자리 코드로 맵핑)
+        const symbolMap = {
+            "삼성전자": "005930",
+            "SK하이닉스": "000660",
+            "현대차": "005380",
+            "LG에너지솔루션": "373220",
+            "NAVER": "035420",
+            "네이버": "035420",
+            "카카오": "035720",
+            "셀트리온": "068270",
+            "기아": "000270",
+            "POSCO홀딩스": "005490",
+            "포스코홀딩스": "005490",
+            "삼성바이오로직스": "207940",
+            "에코프로비엠": "247540",
+            "에코프로": "086520",
+            "애플": "AAPL",
+            "테슬라": "TSLA",
+            "엔비디아": "NVDA",
+            "마이크로소프트": "MSFT",
+            "구글": "GOOGL"
+        };
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + tabId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Re-init chart if switching to analysis tab to ensure correct rendering
+            if(tabId === 'prompt') {
+                setTimeout(updateChart, 100);
+            }
+        }
+
+        // 하이브리드 차트 초기화 (해외: TradingView, 국내: 네이버 금융)
+        function updateChart() {
+            const symbolInput = document.getElementById('stockName').value.trim();
+            let symbol = symbolInput.toUpperCase() || "AAPL";
+            
+            let isKorean = false;
+            let krxCode = "";
+
+            // 1. 사전에 등록된 종목명인지 확인
+            if (symbolMap[symbolInput]) {
+                const mapped = symbolMap[symbolInput];
+                if (/^\d{6}$/.test(mapped)) {
+                    isKorean = true;
+                    krxCode = mapped;
+                } else {
+                    symbol = mapped;
+                }
+            } 
+            // 2. 한국 종목 코드(6자리 숫자)인 경우 처리
+            else if (/^\d{6}$/.test(symbol)) {
+                isKorean = true;
+                krxCode = symbol;
+            } 
+            // 3. 사전에 없는 한글이 입력되었을 때 처리
+            else if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(symbol)) {
+                showToast("사전에 없는 종목입니다. 임시로 삼성전자 차트를 띄웁니다. 정확한 6자리 종목코드(예: 005930)를 입력해주세요.");
+                isKorean = true;
+                krxCode = "005930"; 
+            }
+            // 4. 그 외 기본값은 미국 주식(NASDAQ/NYSE)으로 간주
+            else {
+                isKorean = false;
+                if (!symbol.includes(":")) {
+                    symbol = `NASDAQ:${symbol}`;
+                }
+            }
+
+            const container = document.getElementById('tradingview_container');
+            container.innerHTML = ''; // 기존 내용 초기화
+
+            if (isKorean) {
+                // 한국 주식: 네이버 금융 실시간 일봉 차트 이미지 연동
+                const timestamp = new Date().getTime(); // 캐시 방지
+                const imgUrl = `https://ssl.pstatic.net/imgfinance/chart/item/candle/day/${krxCode}.png?sidcode=${timestamp}`;
+                
+                container.innerHTML = `
+                    <div class="w-full h-full flex flex-col items-center justify-center bg-slate-50 rounded-[1.5rem] relative p-6">
+                        <div class="absolute top-4 left-4 bg-google-blue text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md z-10 flex items-center gap-1">
+                            <i data-lucide="bar-chart-2" class="w-4 h-4"></i> 국내 주식 (일봉)
+                        </div>
+                        <img src="${imgUrl}" alt="한국 주식 차트" class="max-w-full max-h-full object-contain rounded-xl shadow-sm mix-blend-multiply" onerror="this.onerror=null; this.src=''; showToast('차트를 불러올 수 없습니다. 종목코드를 다시 확인해주세요.');">
+                        <a href="https://finance.naver.com/item/main.naver?code=${krxCode}" target="_blank" class="absolute bottom-4 right-4 bg-gray-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-gray-700 transition flex items-center gap-1.5 shadow-lg">
+                            네이버 금융에서 상세보기 <i data-lucide="external-link" class="w-3 h-3"></i>
+                        </a>
+                    </div>
+                `;
+                lucide.createIcons();
+            } else {
+                // 해외 주식: TradingView 위젯 사용
+                container.innerHTML = `<div id="tradingview_chart" style="height:100%;width:100%"></div>`;
+                new TradingView.widget({
+                    "autosize": true,
+                    "symbol": symbol,
+                    "interval": "D",
+                    "timezone": "Asia/Seoul",
+                    "theme": "dark",
+                    "style": "1",
+                    "locale": "ko",
+                    "toolbar_bg": "#f1f3f6",
+                    "enable_publishing": false,
+                    "hide_top_toolbar": false,
+                    "save_image": false,
+                    "container_id": "tradingview_chart"
+                });
+            }
+            updatePrompt();
+        }
+
+        const sIn = document.getElementById('stockName');
+        const iIn = document.getElementById('indicator');
+        const tIn = document.getElementById('investStyle');
+        const pDi = document.getElementById('generatedPrompt');
+
+        function updatePrompt() {
+            const s = sIn.value || "AAPL";
+            
+            let extraFocus = "";
+            if(tIn.value.includes("장기 가치")) {
+                extraFocus = "재무 건전성과 산업 모멘텀, 장기적인 펀더멘털 관점에서 분석해줘.";
+            } else {
+                extraFocus = "현재의 기술적 흐름, 거래량, 주요 지지/저항선 돌파 여부를 중심으로 분석해줘.";
+            }
+
+            pDi.value = `너는 30년 경력의 월스트리트 수석 애널리스트야. ${s} 종목에 대해 ${iIn.value} 위주로 '실시간 구글 검색'을 활용하여 최신 주가 흐름과 뉴스를 반영한 정밀 리포트를 작성해줘.\n\n투자 성향: ${tIn.value}\n\n[필수 포함 항목]\n1. 현재 시장 및 해당 종목 추세 요약\n2. 캔들스틱 및 보조지표의 복합적 신호 해석\n3. 향후 1주일 매매 전략 (가격대 제시)\n4. 치명적인 리스크 관리 포인트\n\n${extraFocus}\n\n결과는 반드시 가시성이 좋게 명확한 소제목으로 나누어 전문적으로 작성해줘.`;
+        }
+        [sIn, iIn, tIn].forEach(e => e.addEventListener('input', updatePrompt));
+
+        async function fetchGemini(prompt) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                tools: [{ google_search: {} }],
+                systemInstruction: { parts: [{ text: "당신은 냉철한 데이터 분석 전문가입니다. 분석 결과는 항상 명확한 구조의 리포트 형태로 작성하며, 불필요한 서론은 제외합니다." }] }
+            };
+            
+            // Exponential backoff
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (res.ok) {
+                        const data = await res.json();
+                        return data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    }
+                } catch (e) {}
+                await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+            }
+            throw new Error("분석 서버 응답이 지연되고 있습니다. 잠시 후 시도해주세요.");
+        }
+
+        // Format AI response to look like a professional report
+        function formatResult(text) {
+            if (!text) return "";
+            const lines = text.split('\n');
+            let html = "";
+            let inSection = false;
+            
+            lines.forEach(l => {
+                const tr = l.trim();
+                if (tr.match(/^[0-9]\. |^# |^\[.*\]|^\*\*.*?\*\*:$/)) {
+                    if (inSection) html += `</div>`;
+                    let title = tr.replace(/^[0-9]\. |^# |^\[|\]|^\*\*|\*\*:$/g, '').trim();
+                    html += `<div class="result-section"><h4><i data-lucide="check-square" class="w-5 h-5"></i> ${title}</h4>`;
+                    inSection = true;
+                } else if (tr) {
+                    // Make sure bold formatting inside text maps to yellow highlight
+                    const formatted = tr.replace(/\*\*(.*?)\*\*/g, '<b class="google-yellow font-bold">$1</b>');
+                    html += `<p class="mb-3 text-[15px] opacity-90 leading-relaxed">${formatted}</p>`;
+                }
+            });
+            if (inSection) html += `</div>`;
+            return html || text.replace(/\n/g, '<br>');
+        }
+
+        async function runAnalysis() {
+            const area = document.getElementById('aiResponseArea');
+            const loading = document.getElementById('aiLoading');
+            const content = document.getElementById('aiResponseContent');
+            const runBtn = document.getElementById('runBtn');
+            
+            area.classList.remove('hidden');
+            loading.classList.remove('hidden');
+            content.innerHTML = "";
+            runBtn.disabled = true;
+            runBtn.style.opacity = "0.5";
+            
+            try {
+                const res = await fetchGemini(pDi.value);
+                content.innerHTML = formatResult(res);
+                lucide.createIcons();
+            } catch (err) {
+                content.innerHTML = `<div class="p-8 bg-red-500/20 border border-red-500/30 rounded-3xl flex items-center gap-4 text-red-200"><i data-lucide="alert-circle" class="w-8 h-8"></i><span class="text-lg">${err.message}</span></div>`;
+                lucide.createIcons();
+            } finally {
+                loading.classList.add('hidden');
+                runBtn.disabled = false;
+                runBtn.style.opacity = "1";
+            }
+        }
+
+        function copyPrompt() {
+            const textarea = document.createElement('textarea');
+            textarea.value = pDi.value;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            showToast("프롬프트가 복사되었습니다!");
+        }
+
+        function checkAnswer(isCorrect) {
+            if (isCorrect) {
+                confetti({ particleCount: 250, spread: 100, origin: { y: 0.6 }, colors: ['#4285F4', '#34A853', '#FBBC05', '#EA4335'] });
+                document.getElementById('quizContainer').classList.add('hidden');
+                document.getElementById('quizResult').classList.remove('hidden');
+            } else {
+                showToast("다시 한 번 생각해보세요! 시장의 에너지를 파악하는 것이 중요합니다.");
+            }
+        }
+
+        function resetQuiz() {
+            document.getElementById('quizContainer').classList.remove('hidden');
+            document.getElementById('quizResult').classList.add('hidden');
+        }
+
+        window.onload = () => {
+            updatePrompt();
+            updateChart(); // Initialize TradingView chart
+            showTab('concept');
+        };
+    </script>
+</body>
+</html>
